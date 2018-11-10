@@ -10,8 +10,9 @@ import org.junit.Test;
 
 import cvm.CvmCiaAberta;
 import cvm.CvmDataPortal;
+import cvm.CvmFundo;
 import cvm.CvmFundoDiario;
-import cvm.CvmParticipanteIntermediario;
+import cvm.CvmIntermediario;
 
 public class CvmDataPortalTests {
 
@@ -41,7 +42,19 @@ public class CvmDataPortalTests {
 
 	@Test
 	public void fetchParticipantesIntermediarios() throws MalformedURLException, IOException {
-		List<CvmParticipanteIntermediario> list = new CvmDataPortal().fetchParticipantesIntermediarios();
+		List<CvmIntermediario> list = new CvmDataPortal().fetchIntermediarios();
+		Assert.assertTrue(list.size() > 10);
+	}
+
+	@Test
+	public void fetchFundosEstruturados() throws MalformedURLException, IOException {
+		List<CvmFundo> list = new CvmDataPortal().fetchFundosEstruturados();
+		Assert.assertTrue(list.size() > 10);
+	}
+
+	@Test
+	public void fetchFundos() throws MalformedURLException, IOException {
+		List<CvmFundo> list = new CvmDataPortal().fetchFundos();
 		Assert.assertTrue(list.size() > 10);
 	}
 

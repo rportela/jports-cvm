@@ -42,7 +42,7 @@ import jports.text.CsvTable;
  * @author rportela
  *
  */
-@CsvTable(separator = ";", charset = "windows-1252")
+@CsvTable(separator = ";", charset = "windows-1252", firstRowHasNames = true)
 public class CvmFundoDiario {
 
 	/**
@@ -50,7 +50,7 @@ public class CvmFundoDiario {
 	 * Scale: 0;
 	 */
 	@CsvColumn(name = "CNPJ_FUNDO", adapter = DigitsOnlyToLong.class)
-	public long cnpj;
+	public Long cnpj;
 
 	/**
 	 * Descri��o: Data de compet�ncia do documento; Dom�nio: AAAA-MM-DD; Tipo dados:

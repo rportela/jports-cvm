@@ -19,7 +19,7 @@ import jports.text.CsvTable;
  *
  */
 @CsvTable(separator = ";", charset = "windows-1252")
-public class CvmParticipanteIntermediario {
+public class CvmIntermediario {
 
 	/**
 	 * Tipo de participante - Alfanumérico - varchar; Precisão: 50; Scale: 0

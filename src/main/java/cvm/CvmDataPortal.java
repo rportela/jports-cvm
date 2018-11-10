@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -132,8 +133,12 @@ public class CvmDataPortal {
 				LinkedHashMap<String, List<CvmFundoDiario>> map = new LinkedHashMap<String, List<CvmFundoDiario>>(12);
 				while ((entry = zis.getNextEntry()) != null) {
 					String name = entry.getName();
-					List<CvmFundoDiario> list = aspect.parse(zis);
-					map.put(name, list);
+					try {
+						List<CvmFundoDiario> list = aspect.parse(zis);
+						map.put(name, list);
+					} catch (Exception e) {
+						throw new RuntimeException(zipUrl + " -> Unable to parse on " + name, e);
+					}
 				}
 				zis.close();
 				return map;
@@ -203,12 +208,89 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmParticipanteIntermediario> fetchParticipantesIntermediarios()
+	public List<CvmIntermediario> fetchIntermediarios()
 			throws MalformedURLException, IOException {
-		CsvAspect<CvmParticipanteIntermediario> aspect = new CsvAspect<>(CvmParticipanteIntermediario.class);
+		CsvAspect<CvmIntermediario> aspect = new CsvAspect<>(CvmIntermediario.class);
 		return aspect.parse(
 				new URL(
 						"http://dados.cvm.gov.br/dados/INTERMEDIARIO/CAD/DADOS/inf_cadastral_intermediario.csv"));
+	}
+
+	/**
+	 * Fundos Estruturados: Informação Cadastral
+	 * 
+	 * Dados cadastrais de fundos estruturados (FII, FACFIF, FAPI, FIDC, FIF, FIIM,
+	 * FIP, FMAI, FMIEE, FMP-FGTS, FMP-FGTS CL e FUNCINE), tais como CNPJ, data de
+	 * registro e situação do fundo.
+	 * 
+	 * O conjunto de dados disponibiliza as informações cadastrais referentes ao
+	 * último dia útil.
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws MalformedURLException
+	 */
+	public List<CvmFundo> fetchFundosEstruturados() throws MalformedURLException, IOException {
+		CsvAspect<CvmFundo> aspect = new CsvAspect<>(CvmFundo.class);
+		return aspect.parse(
+				new URL(
+						"http://dados.cvm.gov.br/dados/FIE/CAD/DADOS/inf_cadastral_fie.csv"));
+	}
+
+	/**
+	 * Fundos de Investimento: Informação Cadastral
+	 * 
+	 * Dados cadastrais de fundos de investimento referentes à instrução da CVM
+	 * número 555, como CNPJ, data de registro e situação do fundo.
+	 * 
+	 * O conjunto de dados disponibiliza as informações cadastrais referentes aos
+	 * últimos noventa dias, mas existe um histórico desde Julho de 2017.
+	 * 
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws MalformedURLException
+	 */
+	public List<CvmFundo> fetchFundos(Date data) throws MalformedURLException, IOException {
+
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(data);
+		switch (cal.get(Calendar.DAY_OF_WEEK)) {
+		case Calendar.SUNDAY:
+			cal.add(Calendar.DAY_OF_MONTH, -2);
+			break;
+		case Calendar.SATURDAY:
+			cal.add(Calendar.DAY_OF_MONTH, -1);
+			break;
+		}
+
+		String urlFormat = "http://dados.cvm.gov.br/dados/FI/CAD/DADOS/inf_cadastral_fi_%d%02d%02d.csv";
+		String urlString = String.format(
+				urlFormat,
+				cal.get(Calendar.YEAR),
+				cal.get(Calendar.MONTH) + 1,
+				cal.get(Calendar.DAY_OF_MONTH));
+
+		CsvAspect<CvmFundo> aspect = new CsvAspect<>(CvmFundo.class);
+		return aspect.parse(new URL(urlString));
+	}
+
+	/**
+	 * Fundos de Investimento: Informação Cadastral
+	 * 
+	 * Dados cadastrais de fundos de investimento referentes à instrução da CVM
+	 * número 555, como CNPJ, data de registro e situação do fundo.
+	 * 
+	 * O conjunto de dados disponibiliza as informações cadastrais referentes aos
+	 * últimos noventa dias, mas existe um histórico desde Julho de 2017.
+	 * 
+	 * 
+	 * @return
+	 * @throws IOException
+	 * @throws MalformedURLException
+	 */
+	public List<CvmFundo> fetchFundos() throws MalformedURLException, IOException {
+		return fetchFundos(new Date());
 	}
 
 }
