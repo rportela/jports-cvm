@@ -19,7 +19,7 @@ import jports.text.CsvAspect;
  * @author rportela
  *
  */
-public class CvmDataPortal {
+public class DataPortal {
 
 	/**
 	 * Cias. Abertas: Informação Cadastral
@@ -34,8 +34,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmCiaAberta> fetchCiasAbertas() throws MalformedURLException, IOException {
-		CsvAspect<CvmCiaAberta> aspect = new CsvAspect<>(CvmCiaAberta.class);
+	public List<CiaAberta> fetchCiasAbertas() throws MalformedURLException, IOException {
+		CsvAspect<CiaAberta> aspect = new CsvAspect<>(CiaAberta.class);
 		aspect.setCapacity(2500);
 		return aspect.parse(
 				new URL(
@@ -76,7 +76,7 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmFundoDiario> fetchFundoDiario() throws MalformedURLException, IOException {
+	public List<FundoDiario> fetchFundoDiario() throws MalformedURLException, IOException {
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.DAY_OF_MONTH) < 3) {
 			cal.add(Calendar.MONTH, -1);
@@ -116,25 +116,25 @@ public class CvmDataPortal {
 	 * Os arquivos referente aos meses M-4, M-5, ..., até M-11 serão atualizados
 	 * mensalmente com as eventuais reapresentações.
 	 * 
-	 * @param year
+	 * @param ano
 	 * @return
 	 * @throws IOException
 	 */
-	public LinkedHashMap<String, List<CvmFundoDiario>> fetchFundoDiario(int year) throws IOException {
-		final CsvAspect<CvmFundoDiario> aspect = new CsvAspect<CvmFundoDiario>(CvmFundoDiario.class);
+	public LinkedHashMap<String, List<FundoDiario>> fetchFundoDiario(int ano) throws IOException {
+		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		final URL zipUrl = new URL(
 				String.format(
 						"http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/HIST/inf_diario_fi_%d.zip",
-						year));
+						ano));
 		ZipEntry entry;
 		try (InputStream is = zipUrl.openStream()) {
 			try (ZipInputStream zis = new ZipInputStream(is)) {
-				LinkedHashMap<String, List<CvmFundoDiario>> map = new LinkedHashMap<String, List<CvmFundoDiario>>(12);
+				LinkedHashMap<String, List<FundoDiario>> map = new LinkedHashMap<String, List<FundoDiario>>(12);
 				while ((entry = zis.getNextEntry()) != null) {
 					String name = entry.getName();
 					try {
-						List<CvmFundoDiario> list = aspect.parse(zis);
+						List<FundoDiario> list = aspect.parse(zis);
 						map.put(name, list);
 					} catch (Exception e) {
 						throw new RuntimeException(zipUrl + " -> Unable to parse on " + name, e);
@@ -178,19 +178,19 @@ public class CvmDataPortal {
 	 * Os arquivos referente aos meses M-4, M-5, ..., até M-11 serão atualizados
 	 * mensalmente com as eventuais reapresentações.
 	 * 
-	 * @param year
-	 * @param month
+	 * @param ano
+	 * @param mes
 	 * @return
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmFundoDiario> fetchFundoDiario(int year, int month) throws MalformedURLException, IOException {
-		final CsvAspect<CvmFundoDiario> aspect = new CsvAspect<CvmFundoDiario>(CvmFundoDiario.class);
+	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws MalformedURLException, IOException {
+		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_%d%02d.csv",
-				year,
-				month);
+				ano,
+				mes);
 		return aspect.parse(new URL(url));
 	}
 
@@ -208,9 +208,9 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmIntermediario> fetchIntermediarios()
+	public List<Intermediario> fetchIntermediarios()
 			throws MalformedURLException, IOException {
-		CsvAspect<CvmIntermediario> aspect = new CsvAspect<>(CvmIntermediario.class);
+		CsvAspect<Intermediario> aspect = new CsvAspect<>(Intermediario.class);
 		return aspect.parse(
 				new URL(
 						"http://dados.cvm.gov.br/dados/INTERMEDIARIO/CAD/DADOS/inf_cadastral_intermediario.csv"));
@@ -230,8 +230,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundo> fetchFundosEstruturados() throws MalformedURLException, IOException {
-		CsvAspect<CvmFundo> aspect = new CsvAspect<>(CvmFundo.class);
+	public List<Fundo> fetchFundosEstruturados() throws MalformedURLException, IOException {
+		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
 		return aspect.parse(
 				new URL(
 						"http://dados.cvm.gov.br/dados/FIE/CAD/DADOS/inf_cadastral_fie.csv"));
@@ -251,7 +251,7 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundo> fetchFundos(Date data) throws MalformedURLException, IOException {
+	public List<Fundo> fetchFundos(Date data) throws MalformedURLException, IOException {
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(data);
@@ -271,7 +271,7 @@ public class CvmDataPortal {
 				cal.get(Calendar.MONTH) + 1,
 				cal.get(Calendar.DAY_OF_MONTH));
 
-		CsvAspect<CvmFundo> aspect = new CsvAspect<>(CvmFundo.class);
+		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
 		return aspect.parse(new URL(urlString));
 	}
 
@@ -289,8 +289,101 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundo> fetchFundos() throws MalformedURLException, IOException {
+	public List<Fundo> fetchFundos() throws MalformedURLException, IOException {
 		return fetchFundos(new Date());
+	}
+
+	/**
+	 * Fundos Estruturados: Medidas
+	 * 
+	 * Medidas de fundos estruturados (FIP, FIDC, FII, etc.): Patrimônio Líquido e
+	 * Número de Cotistas.
+	 * 
+	 * O conjunto de dados disponibiliza as medidas referentes aos últimos doze
+	 * meses.
+	 * 
+	 * Os arquivos referentes ao último mês completo (M-1) e anterior (M-2) serão
+	 * atualizados semanalmente com as eventuais reapresentações.
+	 * 
+	 * Os arquivos referente aos meses M-3, M-4, ..., até M-12 serão atualizados
+	 * mensalmente com as eventuais reapresentações.
+	 * 
+	 * Histórico desde 01/2017 (incluindo arquivos não sujeitos à política de
+	 * atualização)
+	 * 
+	 * 
+	 * @param ano
+	 * @param mes
+	 * @return
+	 * @throws IOException
+	 * @throws MalformedURLException
+	 */
+	public List<FundoMedida> fetchMedidasFundosEstruturados(int ano, int mes)
+			throws MalformedURLException, IOException {
+		String url = String.format(
+				"http://dados.cvm.gov.br/dados/FIE/MEDIDAS/DADOS/medidas_mes_fie_%d%02d.csv",
+				ano,
+				mes);
+		final CsvAspect<FundoMedida> aspect = new CsvAspect<FundoMedida>(FundoMedida.class);
+		aspect.setCapacity(20000);
+		return aspect.parse(new URL(url));
+
+	}
+
+	/**
+	 * Fundos de Investimento: Documentos: Eventuais, DFs e Demonstrativos
+	 * Trimestrais
+	 * 
+	 * O conjunto de dados disponibiliza os Documentos Eventuais, Demonstrações
+	 * Financeiras (DFs) e Demonstrativos Trimestrais de Fundos de Investimento nos
+	 * últimos cinco anos.
+	 * 
+	 * São Documentos Eventuais:
+	 * 
+	 * Ata de Assembléia Geral Ordinária (AGO)
+	 * 
+	 * Edital de Convocação para Ass. Geral Ordinária (EDITAL AGO)
+	 * 
+	 * Outros
+	 * 
+	 * Fato Relevante
+	 * 
+	 * Demonstrações Contábeis
+	 * 
+	 * Regulamento de Fundos
+	 * 
+	 * Prospecto de Fundos
+	 * 
+	 * Prospecto de Distribuição
+	 * 
+	 * Aviso ao Mercado
+	 * 
+	 * Proposta do Administrador
+	 * 
+	 * Relatório de Classificação de Risco
+	 * 
+	 * Anúncio de Início de Distribuição (AID)
+	 * 
+	 * Anúncio de Encerramento de Distribuição (AED)
+	 * 
+	 * Os arquivos referentes aos anos corrente e anterior serão atualizados
+	 * semanalmente com as eventuais reapresentações.
+	 * 
+	 * Os arquivos referentes aos anos A-2, ..., A-4 serão atualizados mensalmente
+	 * com as eventuais reapresentações.
+	 * 
+	 * @param ano
+	 * @return
+	 * @throws MalformedURLException
+	 * @throws IOException
+	 */
+	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws MalformedURLException, IOException {
+		String url = String.format(
+				"http://dados.cvm.gov.br/dados/FI/DOC/EVENTUAL/DADOS/eventual_fi_%d.csv",
+				ano);
+		final CsvAspect<FundoInfoEventual> aspect = new CsvAspect<FundoInfoEventual>(FundoInfoEventual.class);
+		aspect.setCapacity(20000);
+		return aspect.parse(new URL(url));
 	}
 
 }

@@ -15,7 +15,7 @@ import jports.text.CsvTable;
  *
  */
 @CsvTable(separator = ";", charset = "windows-1252")
-public class CvmCiaAberta {
+public class CiaAberta {
 
 	/**
 	 * CNPJ da companhia; Domínio: Alfanumérico; Tipo dados: varchar; Precisão: 20;

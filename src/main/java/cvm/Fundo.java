@@ -10,7 +10,7 @@ import jports.text.CsvColumn;
 import jports.text.CsvTable;
 
 @CsvTable(separator = ";", firstRowHasNames = true, charset = "windows-1252")
-public class CvmFundo {
+public class Fundo {
 
 	/**
 	 * Tipo de fundo - Alfanumérico - varchar; Precisão: 15; Scale: 0
