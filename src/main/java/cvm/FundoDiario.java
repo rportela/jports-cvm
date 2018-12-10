@@ -47,7 +47,7 @@ import jports.text.CsvTable;
  *
  */
 @CsvTable(separator = ";", charset = "windows-1252", firstRowHasNames = true)
-public class CvmFundoDiario {
+public class FundoDiario {
 
 	/**
 	 * CNPJ do fundo - Alfanumérico - varchar; Precisão: 20; Scale: 0

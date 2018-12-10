@@ -34,8 +34,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmCiaAberta> fetchCiasAbertas() throws MalformedURLException, IOException {
-		CsvAspect<CvmCiaAberta> aspect = new CsvAspect<>(CvmCiaAberta.class);
+	public List<CiaAberta> fetchCiasAbertas() throws MalformedURLException, IOException {
+		CsvAspect<CiaAberta> aspect = new CsvAspect<>(CiaAberta.class);
 		aspect.setCapacity(2500);
 		return aspect.parse(
 				new URL(
@@ -76,7 +76,7 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmFundoDiario> fetchFundoDiario() throws MalformedURLException, IOException {
+	public List<FundoDiario> fetchFundoDiario() throws MalformedURLException, IOException {
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.DAY_OF_MONTH) < 3) {
 			cal.add(Calendar.MONTH, -1);
@@ -120,8 +120,8 @@ public class CvmDataPortal {
 	 * @return
 	 * @throws IOException
 	 */
-	public LinkedHashMap<String, List<CvmFundoDiario>> fetchFundoDiario(int ano) throws IOException {
-		final CsvAspect<CvmFundoDiario> aspect = new CsvAspect<CvmFundoDiario>(CvmFundoDiario.class);
+	public LinkedHashMap<String, List<FundoDiario>> fetchFundoDiario(int ano) throws IOException {
+		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		final URL zipUrl = new URL(
 				String.format(
@@ -130,11 +130,11 @@ public class CvmDataPortal {
 		ZipEntry entry;
 		try (InputStream is = zipUrl.openStream()) {
 			try (ZipInputStream zis = new ZipInputStream(is)) {
-				LinkedHashMap<String, List<CvmFundoDiario>> map = new LinkedHashMap<String, List<CvmFundoDiario>>(12);
+				LinkedHashMap<String, List<FundoDiario>> map = new LinkedHashMap<String, List<FundoDiario>>(12);
 				while ((entry = zis.getNextEntry()) != null) {
 					String name = entry.getName();
 					try {
-						List<CvmFundoDiario> list = aspect.parse(zis);
+						List<FundoDiario> list = aspect.parse(zis);
 						map.put(name, list);
 					} catch (Exception e) {
 						throw new RuntimeException(zipUrl + " -> Unable to parse on " + name, e);
@@ -184,8 +184,8 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmFundoDiario> fetchFundoDiario(int ano, int mes) throws MalformedURLException, IOException {
-		final CsvAspect<CvmFundoDiario> aspect = new CsvAspect<CvmFundoDiario>(CvmFundoDiario.class);
+	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws MalformedURLException, IOException {
+		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_%d%02d.csv",
@@ -208,9 +208,9 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmIntermediario> fetchIntermediarios()
+	public List<Intermediario> fetchIntermediarios()
 			throws MalformedURLException, IOException {
-		CsvAspect<CvmIntermediario> aspect = new CsvAspect<>(CvmIntermediario.class);
+		CsvAspect<Intermediario> aspect = new CsvAspect<>(Intermediario.class);
 		return aspect.parse(
 				new URL(
 						"http://dados.cvm.gov.br/dados/INTERMEDIARIO/CAD/DADOS/inf_cadastral_intermediario.csv"));
@@ -230,8 +230,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundo> fetchFundosEstruturados() throws MalformedURLException, IOException {
-		CsvAspect<CvmFundo> aspect = new CsvAspect<>(CvmFundo.class);
+	public List<Fundo> fetchFundosEstruturados() throws MalformedURLException, IOException {
+		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
 		return aspect.parse(
 				new URL(
 						"http://dados.cvm.gov.br/dados/FIE/CAD/DADOS/inf_cadastral_fie.csv"));
@@ -251,7 +251,7 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundo> fetchFundos(Date data) throws MalformedURLException, IOException {
+	public List<Fundo> fetchFundos(Date data) throws MalformedURLException, IOException {
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(data);
@@ -271,7 +271,7 @@ public class CvmDataPortal {
 				cal.get(Calendar.MONTH) + 1,
 				cal.get(Calendar.DAY_OF_MONTH));
 
-		CsvAspect<CvmFundo> aspect = new CsvAspect<>(CvmFundo.class);
+		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
 		return aspect.parse(new URL(urlString));
 	}
 
@@ -289,8 +289,14 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundo> fetchFundos() throws MalformedURLException, IOException {
-		return fetchFundos(new Date());
+	public List<Fundo> fetchFundos() throws MalformedURLException, IOException {
+		Calendar cal = Calendar.getInstance();
+		if (cal.get(Calendar.HOUR) > 8) {
+			cal.add(Calendar.DAY_OF_MONTH, -3);
+		} else {
+			cal.add(Calendar.DAY_OF_MONTH, -2);
+		}
+		return fetchFundos(cal.getTime());
 	}
 
 	/**
@@ -318,13 +324,13 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CvmFundoMedida> fetchMedidasFundosEstruturados(int ano, int mes)
+	public List<FundoMedida> fetchMedidasFundosEstruturados(int ano, int mes)
 			throws MalformedURLException, IOException {
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FIE/MEDIDAS/DADOS/medidas_mes_fie_%d%02d.csv",
 				ano,
 				mes);
-		final CsvAspect<CvmFundoMedida> aspect = new CsvAspect<CvmFundoMedida>(CvmFundoMedida.class);
+		final CsvAspect<FundoMedida> aspect = new CsvAspect<FundoMedida>(FundoMedida.class);
 		aspect.setCapacity(20000);
 		return aspect.parse(new URL(url));
 
@@ -377,11 +383,11 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<CvmFundoInfoEventual> fetchFundoInfosEventuais(int ano) throws MalformedURLException, IOException {
+	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws MalformedURLException, IOException {
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FI/DOC/EVENTUAL/DADOS/eventual_fi_%d.csv",
 				ano);
-		final CsvAspect<CvmFundoInfoEventual> aspect = new CsvAspect<CvmFundoInfoEventual>(CvmFundoInfoEventual.class);
+		final CsvAspect<FundoInfoEventual> aspect = new CsvAspect<FundoInfoEventual>(FundoInfoEventual.class);
 		aspect.setCapacity(20000);
 		return aspect.parse(new URL(url));
 	}

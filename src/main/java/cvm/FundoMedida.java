@@ -26,7 +26,7 @@ import jports.text.CsvTable;
  *
  */
 @CsvTable(separator = ";", charset = "windows-1252", firstRowHasNames = true)
-public class CvmFundoMedida {
+public class FundoMedida {
 
 	/**
 	 * Tipo de fundo - Alfanumérico - varchar; Precisão: 15; Scale: 0
