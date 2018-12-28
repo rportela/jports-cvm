@@ -1,5 +1,6 @@
 package cvm;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import jports.adapters.InputStreamAdapter;
 import jports.text.CsvAspect;
 
 /**
@@ -34,7 +36,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CiaAberta> fetchCiasAbertas() throws MalformedURLException, IOException {
+	public List<CiaAberta> fetchCiasAbertas() throws MalformedURLException,
+			IOException {
 		CsvAspect<CiaAberta> aspect = new CsvAspect<>(CiaAberta.class);
 		aspect.setCapacity(2500);
 		return aspect.parse(
@@ -76,7 +79,8 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<FundoDiario> fetchFundoDiario() throws MalformedURLException, IOException {
+	public List<FundoDiario> fetchFundoDiario() throws MalformedURLException,
+			IOException {
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.DAY_OF_MONTH) < 3) {
 			cal.add(Calendar.MONTH, -1);
@@ -184,7 +188,8 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws MalformedURLException, IOException {
+	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws MalformedURLException,
+			IOException {
 		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		String url = String.format(
@@ -209,7 +214,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 */
 	public List<Intermediario> fetchIntermediarios()
-			throws MalformedURLException, IOException {
+			throws MalformedURLException,
+			IOException {
 		CsvAspect<Intermediario> aspect = new CsvAspect<>(Intermediario.class);
 		return aspect.parse(
 				new URL(
@@ -230,7 +236,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<Fundo> fetchFundosEstruturados() throws MalformedURLException, IOException {
+	public List<Fundo> fetchFundosEstruturados() throws MalformedURLException,
+			IOException {
 		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
 		return aspect.parse(
 				new URL(
@@ -251,7 +258,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<Fundo> fetchFundos(Date data) throws MalformedURLException, IOException {
+	public List<Fundo> fetchFundos(Date data) throws MalformedURLException,
+			IOException {
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(data);
@@ -289,7 +297,8 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<Fundo> fetchFundos() throws MalformedURLException, IOException {
+	public List<Fundo> fetchFundos() throws MalformedURLException,
+			IOException {
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.HOUR) > 8) {
 			cal.add(Calendar.DAY_OF_MONTH, -3);
@@ -325,7 +334,8 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 */
 	public List<FundoMedida> fetchMedidasFundosEstruturados(int ano, int mes)
-			throws MalformedURLException, IOException {
+			throws MalformedURLException,
+			IOException {
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FIE/MEDIDAS/DADOS/medidas_mes_fie_%d%02d.csv",
 				ano,
@@ -383,7 +393,8 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws MalformedURLException, IOException {
+	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws MalformedURLException,
+			IOException {
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FI/DOC/EVENTUAL/DADOS/eventual_fi_%d.csv",
 				ano);
@@ -392,4 +403,149 @@ public class CvmDataPortal {
 		return aspect.parse(new URL(url));
 	}
 
+	/**
+	 * <h1>Composição e Diversificação das Aplicações</h1>
+	 * 
+	 * <p>
+	 * O documento COMPOSIÇÃO E DIVERSIFICAÇÃO DAS APLICAÇÕES (CDA) descreve os
+	 * ativos que compõem as carteiras de fundos de investimento.
+	 * </p>
+	 * 
+	 * <p>
+	 * O conjunto de dados disponibiliza as carteiras dos seguintes tipos de fundos:
+	 * </p>
+	 * 
+	 * <ul>
+	 * <li>FACFIF: FUNDOS DE APLICAÇÃO EM COTAS DE FUNDOS DE INVESTIMENTO</li>
+	 * <li>FAPI: FUNDOS DE APOSENTADORIA PROGRAMADA INDIVIDUAL</li>
+	 * <li>FI: FUNDOS DE INVESTIMENTO ICVM 555</li>
+	 * <li>FI-FGTS: FUNDOS DE INVESTIMENTO FGTS</li>
+	 * <li>FIC-FITVM: FUNDOS DE INVESTIMENTO EM COTAS DE FITVM</li>
+	 * <li>FIEX: FUNDOS DE INVESTIMENTO NO EXTERIOR</li>
+	 * <li>FIF: FUNDOS DE INVESTIMENTO FINANCEIRO</li>
+	 * <li>FIFDIV: FUNDOS DE INVESTIMENTO FINANCEIRO -DIVIDA ESTAD/MUN</li>
+	 * <li>FIIM: FUNDOS DE INVESTIMENTO EM ÍNDICE DE MERCADO</li>
+	 * <li>FIP: FUNDOS DE INVESTIMENTO EM PARTICIPAÇÕES</li>
+	 * <li>FITVM: FUNDOS DE INVESTIMENTO EM TÍTULOS E VALORES MOBILIÁRIOS</li>
+	 * <li>FMAI: FUNDOS MÚTUOS EM AÇÕES INCENTIVADAS</li>
+	 * <li>FMIEE: FUNDOS MÚTUOS DE INVESTIMENTOS EM EMPR. EMERGENTES</li>
+	 * <li>FMP-FGTS: FUNDOS MÚTUOS DE PRIVATIZAÇÃO – FGTS</li>
+	 * <li>FMP-FGTS CL: FUNDOS MÚTUOS DE PRIVATIZAÇÃO - FGTS CARTEIRA LIVRE</li>
+	 * <li>FUNCINE: FUNDOS FINANC. DA INDÚSTRIA CINEMATOGRÁFICA NACIONAL</li>
+	 * </ul>
+	 * 
+	 * <p>
+	 * As aplicações dos fundos estão organizadas nos arquivos de dados conforme a
+	 * estrutura de blocos do padrão XML do Informe CDA.
+	 * </p>
+	 * 
+	 * <ul>
+	 * <li>Bloco 1: TÍTULOS PÚBLICOS DO SELIC</li>
+	 * <li>Bloco 2: COTAS DE FUNDOS DE INVESTIMENTO</li>
+	 * <li>Bloco 3: SWAP</li>
+	 * <li>Bloco 4: DEMAIS ATIVOS CODIFICADOS</li>
+	 * <li>Bloco 5: DEPÓSITOS A PRAZO E OUTROS TÍTULOS DE IF</li>
+	 * <li>Bloco 6: TÍTULOS DO AGRONEGÓCIO E DE CRÉDITO PRIVADO</li>
+	 * <li>Bloco 7: INVESTIMENTO NO EXTERIOR</li>
+	 * <li>Bloco 8: DEMAIS ATIVOS NÃO CODIFICADOS</li>
+	 * </ul>
+	 * <p>
+	 * Importante: Os detalhes sobre as aplicações somente estarão disponíveis após
+	 * expirado o prazo de confidencialidade solicitado pelos administradores dos
+	 * fundos no envio das informações à CVM.
+	 * </p>
+	 * <p>
+	 * O conjunto de dados disponibiliza as carteiras dos Fundos de Investimento nos
+	 * últimos doze meses, a partir de JAN/2018.
+	 * 
+	 * Os arquivos referentes aos últimos quatro meses completos (M-1, M-2, M-3 e
+	 * M-4) serão atualizados semanalmente com as eventuais reapresentações.
+	 * 
+	 * Os arquivos referente aos meses M-5, M-6, ..., até M-12 serão atualizados
+	 * mensalmente com as eventuais reapresentações.
+	 * </p>
+	 * 
+	 * 
+	 * @param ano
+	 * @param mes
+	 * @return
+	 * @throws IOException
+	 */
+	public FundoCarteira fetchFundoCarteiras(int ano, int mes) throws IOException {
+
+		final String url = String.format(
+				"http://dados.cvm.gov.br/dados/FI/DOC/CDA/DADOS/cda_fi_%d%d.zip",
+				ano, mes);
+
+		return parseFundoCarteiraZip(url);
+	}
+
+	/**
+	 * Histórico desde 2005 (arquivos não sujeitos à política de atualização)
+	 * 
+	 * @param ano
+	 * @return
+	 * @throws IOException
+	 */
+	public FundoCarteira fetchFundoCarteiras(int ano) throws IOException {
+
+		final String url = String.format("http://dados.cvm.gov.br/dados/FI/DOC/CDA/DADOS/HIST/cda_fi_%d.zip",
+				ano);
+
+		return parseFundoCarteiraZip(url);
+
+	}
+
+	/**
+	 * Some actual parsing of the URL and data;
+	 * 
+	 * @param url
+	 * @return
+	 * @throws IOException
+	 */
+	private FundoCarteira parseFundoCarteiraZip(String url) throws IOException {
+
+		byte[] zipBytes = null;
+		try (InputStream us = new URL(url).openStream()) {
+			zipBytes = new InputStreamAdapter().toBytes(us);
+			us.close();
+		}
+
+		final FundoCarteira carteira = new FundoCarteira();
+		try (ByteArrayInputStream is = new ByteArrayInputStream(zipBytes)) {
+			ZipInputStream zis = new ZipInputStream(is);
+			for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
+				String entry_name = entry.getName().toLowerCase();
+				System.out.println("parsing " + entry_name);
+				if (entry_name.startsWith("cda_fi_blc_1_")) {
+					new CsvAspect<FundoCarteiraItemTituloPublico>(FundoCarteiraItemTituloPublico.class)
+							.parse(zis, carteira.titulos_publicos);
+				} else if (entry_name.startsWith("cda_fi_blc_2_")) {
+					new CsvAspect<FundoCarteiraItemCotaDeFundo>(FundoCarteiraItemCotaDeFundo.class)
+							.parse(zis, carteira.cotas_de_fundos);
+				} else if (entry_name.startsWith("cda_fi_blc_3_")) {
+					new CsvAspect<FundoCarteiraItemSwap>(FundoCarteiraItemSwap.class)
+							.parse(zis, carteira.swaps);
+				} else if (entry_name.startsWith("cda_fi_blc_4_")) {
+					new CsvAspect<FundoCarteiraItemAtivoCodificado>(FundoCarteiraItemAtivoCodificado.class)
+							.parse(zis, carteira.ativos_codificados);
+				} else if (entry_name.startsWith("cda_fi_blc_5_")) {
+					new CsvAspect<FundoCarteiraItemDepositoAPrazo>(FundoCarteiraItemDepositoAPrazo.class)
+							.parse(zis, carteira.depositos_a_prazo);
+				} else if (entry_name.startsWith("cda_fi_blc_6_")) {
+					new CsvAspect<FundoCarteiraItemCreditoPrivado>(FundoCarteiraItemCreditoPrivado.class)
+							.parse(zis, carteira.credito_privado);
+				} else if (entry_name.startsWith("cda_fi_blc_7_")) {
+					new CsvAspect<FundoCarteiraItemInvestimentoExterior>(FundoCarteiraItemInvestimentoExterior.class)
+							.parse(zis, carteira.investimentos_no_exterior);
+				} else if (entry_name.startsWith("cda_fi_blc_8_")) {
+					new CsvAspect<FundoCarteiraItemNaoCodificado>(FundoCarteiraItemNaoCodificado.class)
+							.parse(zis, carteira.demais_nao_codificados);
+				}
+			}
+			zis.close();
+			is.close();
+		}
+		return carteira;
+	}
 }

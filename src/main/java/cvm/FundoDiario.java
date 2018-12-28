@@ -46,54 +46,74 @@ import jports.text.CsvTable;
  * @author rportela
  *
  */
-@CsvTable(separator = ";", charset = "windows-1252", firstRowHasNames = true)
+@CsvTable(
+		separator = ";",
+		charset = "windows-1252",
+		firstRowHasNames = true)
 public class FundoDiario {
 
 	/**
 	 * CNPJ do fundo - Alfanumérico - varchar; Precisão: 20; Scale: 0
 	 */
-	@CsvColumn(name = "CNPJ_FUNDO", adapter = DigitsOnlyToLong.class)
+	@CsvColumn(
+			name = "CNPJ_FUNDO",
+			adapter = DigitsOnlyToLong.class)
 	public Long cnpj;
 
 	/**
 	 * Data de competência do documento - date; Precisão: 10; Scale: 0
 	 */
-	@CsvColumn(name = "DT_COMPTC", adapter = DateAdapter.class, pattern = "yyyy-MM-dd")
+	@CsvColumn(
+			name = "DT_COMPTC",
+			adapter = DateAdapter.class,
+			pattern = "yyyy-MM-dd")
 	public Date competencia;
 
 	/**
 	 * Valor total da carteira - Numérico - numeric; Precisão: 17; Scale: 2
 	 */
-	@CsvColumn(name = "VL_TOTAL", adapter = DoubleAdapter.class)
+	@CsvColumn(
+			name = "VL_TOTAL",
+			adapter = DoubleAdapter.class)
 	public double carteira;
 
 	/**
 	 * Valor da cota - Numérico - numeric; Precisão: 27; Scale: 12
 	 */
-	@CsvColumn(name = "VL_QUOTA", adapter = DoubleAdapter.class)
+	@CsvColumn(
+			name = "VL_QUOTA",
+			adapter = DoubleAdapter.class)
 	public double quota;
 
 	/**
 	 * Valor do patrimônio líquido - Numérico - numeric; Precisão: 17; Scale: 2
 	 */
-	@CsvColumn(name = "VL_PATRIM_LIQ", adapter = DoubleAdapter.class)
+	@CsvColumn(
+			name = "VL_PATRIM_LIQ",
+			adapter = DoubleAdapter.class)
 	public double pl;
 
 	/**
 	 * Captação do dia - Numérico - numeric; Precisão: 17; Scale: 2
 	 */
-	@CsvColumn(name = "CAPTC_DIA", adapter = DoubleAdapter.class)
+	@CsvColumn(
+			name = "CAPTC_DIA",
+			adapter = DoubleAdapter.class)
 	public double captacao;
 
 	/**
 	 * Resgate no dia - Numérico - numeric; Precisão: 17; Scale: 2
 	 */
-	@CsvColumn(name = "RESG_DIA", adapter = DoubleAdapter.class)
+	@CsvColumn(
+			name = "RESG_DIA",
+			adapter = DoubleAdapter.class)
 	public double resgate;
 
 	/**
 	 * Número de cotistas - Numérico - int; Precisão: 10; Scale: 0
 	 */
-	@CsvColumn(name = "NR_COTST", adapter = IntegerAdapter.class)
+	@CsvColumn(
+			name = "NR_COTST",
+			adapter = IntegerAdapter.class)
 	public int cotistas;
 }
