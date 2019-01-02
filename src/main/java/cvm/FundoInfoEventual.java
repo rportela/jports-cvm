@@ -83,7 +83,7 @@ public class FundoInfoEventual {
 	 * date; Precisão: 10 Scale: 0
 	 */
 	@CsvColumn(name = "DT_RECEB", pattern = "yyyy-MM-dd")
-	public Date arquivamento;
+	public Date arquivo_data;
 
 	/**
 	 * varchar; Precisão: 15 Scale: 0
