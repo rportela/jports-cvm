@@ -1,6 +1,7 @@
 package cvm;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <h1>Composição e Diversificação das Aplicações</h1>
@@ -62,41 +63,41 @@ public class FundoCarteira {
 	/**
 	 * Bloco 1: TÍTULOS PÚBLICOS DO SELIC
 	 */
-	public final ArrayList<FundoCarteiraItemTituloPublico> titulos_publicos = new ArrayList<>(40000);
+	public final List<FundoCarteiraItemTituloPublico> titulos_publicos = new ArrayList<>(40000);
 
 	/**
 	 * Bloco 2: COTAS DE FUNDOS DE INVESTIMENTO
 	 */
-	public final ArrayList<FundoCarteiraItemCotaDeFundo> cotas_de_fundos = new ArrayList<>(90000);
+	public final List<FundoCarteiraItemCotaDeFundo> cotas_de_fundos = new ArrayList<>(90000);
 
 	/**
 	 * Bloco 3: SWAP
 	 */
-	public final ArrayList<FundoCarteiraItemSwap> swaps = new ArrayList<>(200);
+	public final List<FundoCarteiraItemSwap> swaps = new ArrayList<>(200);
 
 	/**
 	 * Bloco 4: DEMAIS ATIVOS CODIFICADOS
 	 */
-	public final ArrayList<FundoCarteiraItemAtivoCodificado> ativos_codificados = new ArrayList<>(60000);
+	public final List<FundoCarteiraItemAtivoCodificado> ativos_codificados = new ArrayList<>(60000);
 
 	/**
 	 * Bloco 5: DEPÓSITOS A PRAZO E OUTROS TÍTULOS DE IF
 	 */
-	public final ArrayList<FundoCarteiraItemDepositoAPrazo> depositos_a_prazo = new ArrayList<>(50000);
+	public final List<FundoCarteiraItemDepositoAPrazo> depositos_a_prazo = new ArrayList<>(50000);
 
 	/*
 	 * Bloco 6: TÍTULOS DO AGRONEGÓCIO E DE CRÉDITO PRIVADO
 	 */
-	public final ArrayList<FundoCarteiraItemCreditoPrivado> credito_privado = new ArrayList<>(50000);
+	public final List<FundoCarteiraItemCreditoPrivado> credito_privado = new ArrayList<>(50000);
 
 	/**
 	 * Bloco 7: INVESTIMENTO NO EXTERIOR
 	 */
-	public final ArrayList<FundoCarteiraItemInvestimentoExterior> investimentos_no_exterior = new ArrayList<>(50000);
+	public final List<FundoCarteiraItemInvestimentoExterior> investimentos_no_exterior = new ArrayList<>(50000);
 
 	/**
 	 * Bloco 8: DEMAIS ATIVOS NÃO CODIFICADOS
 	 */
-	public final ArrayList<FundoCarteiraItemNaoCodificado> demais_nao_codificados = new ArrayList<>(50000);
+	public final List<FundoCarteiraItemNaoCodificado> demais_nao_codificados = new ArrayList<>(50000);
 
 }

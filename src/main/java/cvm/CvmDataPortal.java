@@ -9,9 +9,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import jports.GenericLogger;
 import jports.adapters.InputStreamAdapter;
 import jports.text.CsvAspect;
 
@@ -36,8 +38,7 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<CiaAberta> fetchCiasAbertas() throws MalformedURLException,
-			IOException {
+	public List<CiaAberta> fetchCiasAbertas() throws IOException {
 		CsvAspect<CiaAberta> aspect = new CsvAspect<>(CiaAberta.class);
 		aspect.setCapacity(2500);
 		return aspect.parse(
@@ -79,8 +80,7 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<FundoDiario> fetchFundoDiario() throws MalformedURLException,
-			IOException {
+	public List<FundoDiario> fetchFundoDiario() throws IOException {
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.DAY_OF_MONTH) < 3) {
 			cal.add(Calendar.MONTH, -1);
@@ -124,8 +124,8 @@ public class CvmDataPortal {
 	 * @return
 	 * @throws IOException
 	 */
-	public LinkedHashMap<String, List<FundoDiario>> fetchFundoDiario(int ano) throws IOException {
-		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
+	public Map<String, List<FundoDiario>> fetchFundoDiario(int ano) throws IOException {
+		final CsvAspect<FundoDiario> aspect = new CsvAspect<>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		final URL zipUrl = new URL(
 				String.format(
@@ -134,7 +134,7 @@ public class CvmDataPortal {
 		ZipEntry entry;
 		try (InputStream is = zipUrl.openStream()) {
 			try (ZipInputStream zis = new ZipInputStream(is)) {
-				LinkedHashMap<String, List<FundoDiario>> map = new LinkedHashMap<String, List<FundoDiario>>(12);
+				LinkedHashMap<String, List<FundoDiario>> map = new LinkedHashMap<>(12);
 				while ((entry = zis.getNextEntry()) != null) {
 					String name = entry.getName();
 					try {
@@ -144,10 +144,7 @@ public class CvmDataPortal {
 						throw new RuntimeException(zipUrl + " -> Unable to parse on " + name, e);
 					}
 				}
-				zis.close();
 				return map;
-			} finally {
-				is.close();
 			}
 		}
 	}
@@ -188,9 +185,8 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws MalformedURLException,
-			IOException {
-		final CsvAspect<FundoDiario> aspect = new CsvAspect<FundoDiario>(FundoDiario.class);
+	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws IOException {
+		final CsvAspect<FundoDiario> aspect = new CsvAspect<>(FundoDiario.class);
 		aspect.setCapacity(200000);
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_%d%02d.csv",
@@ -214,8 +210,7 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 */
 	public List<Intermediario> fetchIntermediarios()
-			throws MalformedURLException,
-			IOException {
+			throws IOException {
 		CsvAspect<Intermediario> aspect = new CsvAspect<>(Intermediario.class);
 		return aspect.parse(
 				new URL(
@@ -236,8 +231,7 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<Fundo> fetchFundosEstruturados() throws MalformedURLException,
-			IOException {
+	public List<Fundo> fetchFundosEstruturados() throws IOException {
 		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
 		return aspect.parse(
 				new URL(
@@ -258,18 +252,15 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<Fundo> fetchFundos(Date data) throws MalformedURLException,
-			IOException {
+	public List<Fundo> fetchFundos(Date data) throws IOException {
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(data);
-		switch (cal.get(Calendar.DAY_OF_WEEK)) {
-		case Calendar.SUNDAY:
+		int i = cal.get(Calendar.DAY_OF_WEEK);
+		if (i == Calendar.SUNDAY) {
 			cal.add(Calendar.DAY_OF_MONTH, -2);
-			break;
-		case Calendar.SATURDAY:
+		} else if (i == Calendar.SATURDAY) {
 			cal.add(Calendar.DAY_OF_MONTH, -1);
-			break;
 		}
 
 		String urlFormat = "http://dados.cvm.gov.br/dados/FI/CAD/DADOS/inf_cadastral_fi_%d%02d%02d.csv";
@@ -297,8 +288,7 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 * @throws MalformedURLException
 	 */
-	public List<Fundo> fetchFundos() throws MalformedURLException,
-			IOException {
+	public List<Fundo> fetchFundos() throws IOException {
 		Calendar cal = Calendar.getInstance();
 		if (cal.get(Calendar.HOUR) > 8) {
 			cal.add(Calendar.DAY_OF_MONTH, -3);
@@ -334,13 +324,12 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 */
 	public List<FundoMedida> fetchMedidasFundosEstruturados(int ano, int mes)
-			throws MalformedURLException,
-			IOException {
+			throws IOException {
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FIE/MEDIDAS/DADOS/medidas_mes_fie_%d%02d.csv",
 				ano,
 				mes);
-		final CsvAspect<FundoMedida> aspect = new CsvAspect<FundoMedida>(FundoMedida.class);
+		final CsvAspect<FundoMedida> aspect = new CsvAspect<>(FundoMedida.class);
 		aspect.setCapacity(20000);
 		return aspect.parse(new URL(url));
 
@@ -393,12 +382,11 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws MalformedURLException,
-			IOException {
+	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws IOException {
 		String url = String.format(
 				"http://dados.cvm.gov.br/dados/FI/DOC/EVENTUAL/DADOS/eventual_fi_%d.csv",
 				ano);
-		final CsvAspect<FundoInfoEventual> aspect = new CsvAspect<FundoInfoEventual>(FundoInfoEventual.class);
+		final CsvAspect<FundoInfoEventual> aspect = new CsvAspect<>(FundoInfoEventual.class);
 		aspect.setCapacity(20000);
 		return aspect.parse(new URL(url));
 	}
@@ -508,7 +496,6 @@ public class CvmDataPortal {
 		byte[] zipBytes = null;
 		try (InputStream us = new URL(url).openStream()) {
 			zipBytes = new InputStreamAdapter().toBytes(us);
-			us.close();
 		}
 
 		final FundoCarteira carteira = new FundoCarteira();
@@ -516,7 +503,7 @@ public class CvmDataPortal {
 			ZipInputStream zis = new ZipInputStream(is);
 			for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
 				String entry_name = entry.getName().toLowerCase();
-				System.out.println("parsing " + entry_name);
+				GenericLogger.info(this, "parsing " + entry_name);
 				if (entry_name.startsWith("cda_fi_blc_1_")) {
 					new CsvAspect<FundoCarteiraItemTituloPublico>(FundoCarteiraItemTituloPublico.class)
 							.parse(zis, carteira.titulos_publicos);
@@ -544,7 +531,6 @@ public class CvmDataPortal {
 				}
 			}
 			zis.close();
-			is.close();
 		}
 		return carteira;
 	}

@@ -3,8 +3,8 @@ package jports.cvm.tests;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class CvmDataPortalTests {
 	@Test
 	public void fetchFundoDiarioYear2016() throws MalformedURLException,
 			IOException {
-		LinkedHashMap<String, List<FundoDiario>> map = new CvmDataPortal().fetchFundoDiario(2016);
+		Map<String, List<FundoDiario>> map = new CvmDataPortal().fetchFundoDiario(2016);
 		Assert.assertTrue(map.size() == 12);
 	}
 
