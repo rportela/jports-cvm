@@ -502,30 +502,30 @@ public class CvmDataPortal {
 		try (ByteArrayInputStream is = new ByteArrayInputStream(zipBytes)) {
 			ZipInputStream zis = new ZipInputStream(is);
 			for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
-				String entry_name = entry.getName().toLowerCase();
-				GenericLogger.info(this, "parsing " + entry_name);
-				if (entry_name.startsWith("cda_fi_blc_1_")) {
+				String entryName = entry.getName().toLowerCase();
+				GenericLogger.info(getClass(), "parsing " + entryName);
+				if (entryName.startsWith("cda_fi_blc_1_")) {
 					new CsvAspect<FundoCarteiraItemTituloPublico>(FundoCarteiraItemTituloPublico.class)
 							.parse(zis, carteira.titulos_publicos);
-				} else if (entry_name.startsWith("cda_fi_blc_2_")) {
+				} else if (entryName.startsWith("cda_fi_blc_2_")) {
 					new CsvAspect<FundoCarteiraItemCotaDeFundo>(FundoCarteiraItemCotaDeFundo.class)
 							.parse(zis, carteira.cotas_de_fundos);
-				} else if (entry_name.startsWith("cda_fi_blc_3_")) {
+				} else if (entryName.startsWith("cda_fi_blc_3_")) {
 					new CsvAspect<FundoCarteiraItemSwap>(FundoCarteiraItemSwap.class)
 							.parse(zis, carteira.swaps);
-				} else if (entry_name.startsWith("cda_fi_blc_4_")) {
+				} else if (entryName.startsWith("cda_fi_blc_4_")) {
 					new CsvAspect<FundoCarteiraItemAtivoCodificado>(FundoCarteiraItemAtivoCodificado.class)
 							.parse(zis, carteira.ativos_codificados);
-				} else if (entry_name.startsWith("cda_fi_blc_5_")) {
+				} else if (entryName.startsWith("cda_fi_blc_5_")) {
 					new CsvAspect<FundoCarteiraItemDepositoAPrazo>(FundoCarteiraItemDepositoAPrazo.class)
 							.parse(zis, carteira.depositos_a_prazo);
-				} else if (entry_name.startsWith("cda_fi_blc_6_")) {
+				} else if (entryName.startsWith("cda_fi_blc_6_")) {
 					new CsvAspect<FundoCarteiraItemCreditoPrivado>(FundoCarteiraItemCreditoPrivado.class)
 							.parse(zis, carteira.credito_privado);
-				} else if (entry_name.startsWith("cda_fi_blc_7_")) {
+				} else if (entryName.startsWith("cda_fi_blc_7_")) {
 					new CsvAspect<FundoCarteiraItemInvestimentoExterior>(FundoCarteiraItemInvestimentoExterior.class)
 							.parse(zis, carteira.investimentos_no_exterior);
-				} else if (entry_name.startsWith("cda_fi_blc_8_")) {
+				} else if (entryName.startsWith("cda_fi_blc_8_")) {
 					new CsvAspect<FundoCarteiraItemNaoCodificado>(FundoCarteiraItemNaoCodificado.class)
 							.parse(zis, carteira.demais_nao_codificados);
 				}
