@@ -75,7 +75,7 @@ public class FundoDiario {
 	@CsvColumn(
 			name = "VL_TOTAL",
 			adapter = DoubleAdapter.class)
-	public double carteira;
+	public Double carteira;
 
 	/**
 	 * Valor da cota - Numérico - numeric; Precisão: 27; Scale: 12
