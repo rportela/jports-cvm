@@ -1,20 +1,24 @@
 package cvm;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import jports.GenericLogger;
-import jports.adapters.InputStreamAdapter;
 import jports.text.CsvAspect;
 
 /**
@@ -23,7 +27,41 @@ import jports.text.CsvAspect;
  * @author rportela
  *
  */
-public class CvmDataPortal {
+public class CvmDataSource {
+
+	private static final String ROOT_FUNDOS = "fundos";
+	private static final String ROOT_CADASTROS = "cadastros";
+
+	private final String localCachePath;
+
+	public CvmDataSource(String localCachePath) {
+		this.localCachePath = localCachePath;
+	}
+
+	private String formatDailyFileName(String prefix, String sufix) {
+		String ymd = new SimpleDateFormat("_yyyy_MM_dd").format(new Date());
+		return prefix + ymd + sufix;
+	}
+
+	private InputStream locateInputStream(URL remote, boolean override, String... local) throws IOException {
+		if (localCachePath == null) {
+			return remote.openStream();
+		} else {
+			Path localPath = Paths.get(localCachePath, local);
+			if (override || !localPath.toFile().exists()) {
+				Files.createDirectories(localPath.getParent());
+				try (InputStream in = remote.openStream()) {
+					try (OutputStream out = Files.newOutputStream(localPath)) {
+						byte[] buff = new byte[4096];
+						for (int n = in.read(buff); n >= 0; n = in.read(buff)) {
+							out.write(buff, 0, n);
+						}
+					}
+				}
+			}
+			return Files.newInputStream(localPath);
+		}
+	}
 
 	/**
 	 * Cias. Abertas: Informação Cadastral
@@ -39,11 +77,67 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 */
 	public List<CiaAberta> fetchCiasAbertas() throws IOException {
-		CsvAspect<CiaAberta> aspect = new CsvAspect<>(CiaAberta.class);
-		aspect.setCapacity(2500);
-		return aspect.parse(
-				new URL(
-						"http://dados.cvm.gov.br/dados/CIA_ABERTA/CAD/DADOS/inf_cadastral_cia_aberta.csv"));
+		final String url = "http://dados.cvm.gov.br/dados/CIA_ABERTA/CAD/DADOS/inf_cadastral_cia_aberta.csv";
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_CADASTROS,
+				formatDailyFileName("inf_cadastral_cia_aberta", ".csv"))) {
+
+			return new CsvAspect<>(CiaAberta.class)
+					.setCapacity(2500)
+					.parse(is);
+		}
+	}
+
+	/**
+	 * Arquivo de cias estrangeiras registradas conforme link disponível em:
+	 * http://sistemas.cvm.gov.br/
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public List<CiaEstrangeira> fetchCiasEstrangeiras() throws IOException {
+		final String url = "http://sistemas.cvm.gov.br/cadastro/SPW_CIA_ESTRANG.ZIP";
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_CADASTROS,
+				formatDailyFileName("SPW_CIA_ESTRANG", ".zip"))) {
+
+			return new CsvAspect<>(CiaEstrangeira.class)
+					.setCapacity(2500)
+					.parseZip(is)
+					.values()
+					.stream()
+					.flatMap(Collection::stream)
+					.collect(Collectors.toList());
+		}
+	}
+
+	/**
+	 * Arquivo de cias estrangeiras registradas conforme link disponível em:
+	 * http://sistemas.cvm.gov.br/
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
+	public List<CiaIncentivada> fetchCiasIncentivadasRegistradas() throws IOException {
+		final String url = "http://sistemas.cvm.gov.br/cadastro/SPW_CIA_INCENT.ZIP";
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_CADASTROS,
+				formatDailyFileName("SPW_CIA_INCENT", ".zip"))) {
+
+			return new CsvAspect<>(CiaIncentivada.class)
+					.setCapacity(2500)
+					.parseZip(is)
+					.values()
+					.stream()
+					.flatMap(Collection::stream)
+					.collect(Collectors.toList());
+		}
 	}
 
 	/**
@@ -125,27 +219,18 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 */
 	public Map<String, List<FundoDiario>> fetchFundoDiario(int ano) throws IOException {
-		final CsvAspect<FundoDiario> aspect = new CsvAspect<>(FundoDiario.class);
-		aspect.setCapacity(200000);
-		final URL zipUrl = new URL(
-				String.format(
-						"http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/HIST/inf_diario_fi_%d.zip",
-						ano));
-		ZipEntry entry;
-		try (InputStream is = zipUrl.openStream()) {
-			try (ZipInputStream zis = new ZipInputStream(is)) {
-				LinkedHashMap<String, List<FundoDiario>> map = new LinkedHashMap<>(12);
-				while ((entry = zis.getNextEntry()) != null) {
-					String name = entry.getName();
-					try {
-						List<FundoDiario> list = aspect.parse(zis);
-						map.put(name, list);
-					} catch (Exception e) {
-						throw new RuntimeException(zipUrl + " -> Unable to parse on " + name, e);
-					}
-				}
-				return map;
-			}
+		final String fileName = String.format("inf_diario_fi_%d.zip", ano);
+		final String url = "http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/HIST/" + fileName;
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"informe_diario",
+				fileName)) {
+
+			return new CsvAspect<>(FundoDiario.class)
+					.setCapacity(200000)
+					.parseZip(is);
 		}
 	}
 
@@ -186,13 +271,21 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 */
 	public List<FundoDiario> fetchFundoDiario(int ano, int mes) throws IOException {
-		final CsvAspect<FundoDiario> aspect = new CsvAspect<>(FundoDiario.class);
-		aspect.setCapacity(200000);
-		String url = String.format(
-				"http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_%d%02d.csv",
-				ano,
-				mes);
-		return aspect.parse(new URL(url));
+
+		final String fileName = String.format("inf_diario_fi_%d%02d.csv", ano, mes);
+		final String url = "http://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/" + fileName;
+
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"informe_diario",
+				fileName)) {
+
+			return new CsvAspect<>(FundoDiario.class)
+					.setCapacity(200000)
+					.parse(is);
+		}
 	}
 
 	/**
@@ -211,10 +304,17 @@ public class CvmDataPortal {
 	 */
 	public List<Intermediario> fetchIntermediarios()
 			throws IOException {
-		CsvAspect<Intermediario> aspect = new CsvAspect<>(Intermediario.class);
-		return aspect.parse(
-				new URL(
-						"http://dados.cvm.gov.br/dados/INTERMEDIARIO/CAD/DADOS/inf_cadastral_intermediario.csv"));
+
+		final String url = "http://dados.cvm.gov.br/dados/INTERMEDIARIO/CAD/DADOS/inf_cadastral_intermediario.csv";
+
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_CADASTROS,
+				formatDailyFileName("inf_cadastral_intermediario", ".csv"))) {
+
+			return new CsvAspect<>(Intermediario.class).parse(is);
+		}
 	}
 
 	/**
@@ -232,10 +332,17 @@ public class CvmDataPortal {
 	 * @throws MalformedURLException
 	 */
 	public List<Fundo> fetchFundosEstruturados() throws IOException {
-		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
-		return aspect.parse(
-				new URL(
-						"http://dados.cvm.gov.br/dados/FIE/CAD/DADOS/inf_cadastral_fie.csv"));
+
+		final String url = "http://dados.cvm.gov.br/dados/FIE/CAD/DADOS/inf_cadastral_fie.csv";
+
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_CADASTROS,
+				formatDailyFileName("inf_cadastral_fie", ".csv"))) {
+
+			return new CsvAspect<>(Fundo.class).parse(is);
+		}
 	}
 
 	/**
@@ -256,22 +363,25 @@ public class CvmDataPortal {
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(data);
-		int i = cal.get(Calendar.DAY_OF_WEEK);
-		if (i == Calendar.SUNDAY) {
-			cal.add(Calendar.DAY_OF_MONTH, -2);
-		} else if (i == Calendar.SATURDAY) {
-			cal.add(Calendar.DAY_OF_MONTH, -1);
-		}
 
-		String urlFormat = "http://dados.cvm.gov.br/dados/FI/CAD/DADOS/inf_cadastral_fi_%d%02d%02d.csv";
-		String urlString = String.format(
-				urlFormat,
+		String fileName = String.format(
+				"inf_cadastral_fi_%d%02d%02d.csv",
 				cal.get(Calendar.YEAR),
 				cal.get(Calendar.MONTH) + 1,
 				cal.get(Calendar.DAY_OF_MONTH));
 
-		CsvAspect<Fundo> aspect = new CsvAspect<>(Fundo.class);
-		return aspect.parse(new URL(urlString));
+		String url = "http://dados.cvm.gov.br/dados/FI/CAD/DADOS/" + fileName;
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"cadastro",
+				fileName)) {
+
+			return new CsvAspect<>(Fundo.class)
+					.setCapacity(2500)
+					.parse(is);
+		}
 	}
 
 	/**
@@ -325,14 +435,25 @@ public class CvmDataPortal {
 	 */
 	public List<FundoMedida> fetchMedidasFundosEstruturados(int ano, int mes)
 			throws IOException {
-		String url = String.format(
-				"http://dados.cvm.gov.br/dados/FIE/MEDIDAS/DADOS/medidas_mes_fie_%d%02d.csv",
+
+		String fileName = String.format(
+				"medidas_mes_fie_%d%02d.csv",
 				ano,
 				mes);
-		final CsvAspect<FundoMedida> aspect = new CsvAspect<>(FundoMedida.class);
-		aspect.setCapacity(20000);
-		return aspect.parse(new URL(url));
 
+		String url = "http://dados.cvm.gov.br/dados/FIE/MEDIDAS/DADOS/" + fileName;
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"medidas",
+				fileName)) {
+
+			return new CsvAspect<>(FundoMedida.class)
+					.setCapacity(20000)
+					.parse(is);
+
+		}
 	}
 
 	/**
@@ -383,12 +504,25 @@ public class CvmDataPortal {
 	 * @throws IOException
 	 */
 	public List<FundoInfoEventual> fetchFundoInfosEventuais(int ano) throws IOException {
-		String url = String.format(
-				"http://dados.cvm.gov.br/dados/FI/DOC/EVENTUAL/DADOS/eventual_fi_%d.csv",
+
+		String fileName = String.format(
+				"eventual_fi_%d.csv",
 				ano);
-		final CsvAspect<FundoInfoEventual> aspect = new CsvAspect<>(FundoInfoEventual.class);
-		aspect.setCapacity(20000);
-		return aspect.parse(new URL(url));
+
+		String url = "http://dados.cvm.gov.br/dados/FI/DOC/EVENTUAL/DADOS/" + fileName;
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"eventuais",
+				fileName)) {
+
+			return new CsvAspect<>(FundoInfoEventual.class)
+					.setCapacity(20000)
+					.parse(is);
+
+		}
+
 	}
 
 	/**
@@ -461,11 +595,22 @@ public class CvmDataPortal {
 	 */
 	public FundoCarteira fetchFundoCarteiras(int ano, int mes) throws IOException {
 
-		final String url = String.format(
-				"http://dados.cvm.gov.br/dados/FI/DOC/CDA/DADOS/cda_fi_%d%d.zip",
+		String fileName = String.format(
+				"cda_fi_%d%d.zip",
 				ano, mes);
 
-		return parseFundoCarteiraZip(url);
+		String url = "http://dados.cvm.gov.br/dados/FI/DOC/CDA/DADOS/" + fileName;
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"carteiras",
+				fileName)) {
+
+			return parseFundoCarteiraZip(is);
+
+		}
+
 	}
 
 	/**
@@ -477,11 +622,21 @@ public class CvmDataPortal {
 	 */
 	public FundoCarteira fetchFundoCarteiras(int ano) throws IOException {
 
-		final String url = String.format("http://dados.cvm.gov.br/dados/FI/DOC/CDA/DADOS/HIST/cda_fi_%d.zip",
+		String fileName = String.format(
+				"cda_fi_%d.zip",
 				ano);
 
-		return parseFundoCarteiraZip(url);
+		String url = "http://dados.cvm.gov.br/dados/FI/DOC/CDA/DADOS/HIST/" + fileName;
+		try (InputStream is = locateInputStream(
+				new URL(url),
+				false,
+				ROOT_FUNDOS,
+				"carteiras",
+				fileName)) {
 
+			return parseFundoCarteiraZip(is);
+
+		}
 	}
 
 	/**
@@ -491,16 +646,9 @@ public class CvmDataPortal {
 	 * @return
 	 * @throws IOException
 	 */
-	private FundoCarteira parseFundoCarteiraZip(String url) throws IOException {
-
-		byte[] zipBytes = null;
-		try (InputStream us = new URL(url).openStream()) {
-			zipBytes = new InputStreamAdapter().toBytes(us);
-		}
-
+	private FundoCarteira parseFundoCarteiraZip(InputStream is) throws IOException {
 		final FundoCarteira carteira = new FundoCarteira();
-		try (ByteArrayInputStream is = new ByteArrayInputStream(zipBytes)) {
-			ZipInputStream zis = new ZipInputStream(is);
+		try (ZipInputStream zis = new ZipInputStream(is)) {
 			for (ZipEntry entry = zis.getNextEntry(); entry != null; entry = zis.getNextEntry()) {
 				String entryName = entry.getName().toLowerCase();
 				GenericLogger.info(getClass(), "parsing " + entryName);
@@ -530,7 +678,6 @@ public class CvmDataPortal {
 							.parse(zis, carteira.demais_nao_codificados);
 				}
 			}
-			zis.close();
 		}
 		return carteira;
 	}
