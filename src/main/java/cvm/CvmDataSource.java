@@ -77,12 +77,12 @@ public class CvmDataSource {
 	 * @throws MalformedURLException
 	 */
 	public List<CiaAberta> fetchCiasAbertas() throws IOException {
-		final String url = "http://dados.cvm.gov.br/dados/CIA_ABERTA/CAD/DADOS/inf_cadastral_cia_aberta.csv";
+		final String url = "http://dados.cvm.gov.br/dados/CIA_ABERTA/CAD/DADOS/cad_cia_aberta.csv";
 		try (InputStream is = locateInputStream(
 				new URL(url),
 				false,
 				ROOT_CADASTROS,
-				formatDailyFileName("inf_cadastral_cia_aberta", ".csv"))) {
+				formatDailyFileName("cad_cia_aberta", ".csv"))) {
 
 			return new CsvAspect<>(CiaAberta.class)
 					.setCapacity(2500)
